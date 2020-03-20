@@ -50,8 +50,8 @@ make bench
 
 如下图所示 : 若CPU数量只有1个，直接内部排序返回。否则将目标数组分成两个部分，即部分1和部分2，处理上分为Phase1Manager,Phase2Manager，其中Phase1Manager先对第一部分进行分段，段数为CPU数量，对于每段利用GO自带的内部排序方法进行排序。同时开启Phase2Manager接收排序处理后的数组，根据CPU数量和当前处理中的任务数的情况，进行任务分配,启动归并排序。
 
-![](https://github.com/zj40n/zuoye/blob/master/images/phase1.jpg)   
-![](https://github.com/zj40n/zuoye/blob/master/images/phase2.jpg)   
+![](https://i.postimg.cc/FHPJ1bL3/phase1.png)   
+![](https://i.postimg.cc/YSZGzp8S/phase2.png)   
 ## 具体实现   
 
 上文提到，根据和CPU核心数量和当前任务数进行任务分配，每时间段内t，查看有没有返回的任务，若不存在则继续等待，若存在返回的任务。则再等待时间t，直到，存在接受到的任务数量大于等于2并且下一个t时刻没有新任务到来时结束。此时通过算法公式判断：   
@@ -62,13 +62,13 @@ make bench
 最后全部处理完毕后，将归并后的数组，拷贝回原数组，利用多线程加速。
 ## pprof参数调优
 我的CPU为4核心，开启了超线程，go识别为8核心。最初，参数上存在误估，任务等待时间即上文提到的t，设的值为0.2秒，偏大，经过调整，调小为0.01秒。先前测试结果为：多线程归并0.95秒，单线程归并2.7秒左右，结果调整，多线程归并排序时间的降低为0.71秒。结果如下图所示：   
-![](https://github.com/zj40n/zuoye/blob/master/images/Adjust2.png)   利用go-torch工具，可视化cpu利用率后，如下图所示：
-![](https://github.com/zj40n/zuoye/blob/master/images/FlameGraph1.png)    
+![](https://i.postimg.cc/X7k566N2/Adjust2.png)   利用go-torch工具，可视化cpu利用率后，如下图所示：
+![](https://i.postimg.cc/zv1y40sZ/Flame-Graph1.png)    
 经查看发现，CPU使用上，多路归并排序只有10%，而phase1Manager和phase2Manager的内部排序占比为45%左右，瓶颈主要在内部排序。
 关闭超线程后，go识别为4核心。测试结果为:   多线程归并0.9秒，单线程归并2.7秒。结果如下图所示：   
-![](https://github.com/zj40n/zuoye/blob/master/images/Adjust3.png) 
+![](https://i.postimg.cc/jSq7s3LR/Adjust3.png) 
 利用pprof输出pdf，结果如下图所示:
-![](https://github.com/zj40n/zuoye/blob/master/images/pdf1.png)  
+![](https://i.postimg.cc/9M94xvNY/pdf1.png)  
 手动改变算法中的CPU核心数为8测试，结果并没有明显变化。结果如下图所示:
-![](https://github.com/zj40n/zuoye/blob/master/images/Adjust4.png)
+![](https://i.postimg.cc/jjLnfWH9/Adjust4.png)
 
