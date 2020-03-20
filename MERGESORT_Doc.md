@@ -11,8 +11,8 @@
 
 如下图所示 : 若CPU数量只有1个，直接内部排序返回。否则将目标数组分成两个部分，即部分1和部分2，处理上分为Phase1Manager,Phase2Manager，其中Phase1Manager先对第一部分进行分段，段数为CPU数量，对于每段利用GO自带的内部排序方法进行排序。同时开启Phase2Manager接收排序处理后的数组，根据CPU数量和当前处理中的任务数的情况，进行任务分配,启动归并排序。
 
-![](https://github.com/zj40n/zuoye/blob/master/images/Adjust1.png/phase1.jpg)   
-![](https://github.com/zj40n/zuoye/blob/master/images/Adjust1.png/phase2.jpg)   
+![](https://github.com/zj40n/zuoye/blob/master/images/phase1.jpg)   
+![](https://github.com/zj40n/zuoye/blob/master/images/phase2.jpg)   
 ## 具体实现   
 
 上文提到，根据和CPU核心数量和当前任务数进行任务分配，每时间段内t，查看有没有返回的任务，若不存在则继续等待，若存在返回的任务。则再等待时间t，直到，存在接受到的任务数量大于等于2并且下一个t时刻没有新任务到来时结束。此时通过算法公式判断：   
